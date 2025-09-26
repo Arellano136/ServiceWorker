@@ -1,4 +1,3 @@
-// sw.js
 self.addEventListener("install", (event) => {
   sendMessage("Instalada");
   self.skipWaiting(); // pasa a waiting
