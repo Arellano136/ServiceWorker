@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Service Worker Bitácora</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .status {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .status.active {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.inactive {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        tr:hover {
+            background-color: #e8f4f8;
+        }
+    </style>
+    </head>
+<body>
+  <h1 style="text-align: center;">Service Worker</h1>
+  <table id="logTable">
+    <thead>
+      <tr>
+        <th>Evento</th>
+        <th>Fecha y hora</th>
+        <th>✔️</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("sw.js")
+          .then((registration) => {
+            logEvent("Instalado / Esperando");
+
+            // Escuchar mensajes del SW
+            navigator.serviceWorker.addEventListener("message", (event) => {
+              const { status, timestamp } = event.data;
+              logEvent(status, timestamp);
+            });
+
+            // Checar cuando esté activo
+            if (registration.active) {
+              logEvent("Activo");
+              // Mandamos un mensaje de "Ocioso" después de unos segundos
+              setTimeout(() => {
+                registration.active.postMessage("checkIdle");
+              }, 5000);
+            }
+          })
+          .catch((err) => console.error("SW error:", err));
+      });
+    }
+
+    function logEvent(eventName, customTime = null) {
+      const table = document.querySelector("#logTable tbody");
+      const row = document.createElement("tr");
+
+      const now = new Date();
+      const timestamp = customTime || now.toISOString() + `.${now.getMilliseconds()}`;
+
+      row.innerHTML = `
+        <td>${eventName}</td>
+        <td>${timestamp}</td>
+        <td>✅</td>
+      `;
+      table.appendChild(row);
+    }
+  </script>
+</body>
+</html>
